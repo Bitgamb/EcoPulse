@@ -1,0 +1,1 @@
+import { AuthForm } from "@/components/forms/auth-form";import { AuthShell } from "@/components/layout/auth-shell";export default function Register(){return <AuthShell title="Start your EcoPulse" copy="Turn everyday choices into measurable progress."><AuthForm mode="register"/></AuthShell>}

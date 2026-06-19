@@ -1,0 +1,8 @@
+node_modules
+.next
+.env*
+!.env.example
+coverage
+*.tsbuildinfo
+.dev-server.log
+.dev-server.err

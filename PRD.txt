@@ -1,0 +1,978 @@
+You are a senior full-stack developer, UI/UX designer, database architect, and security-focused engineer.
+
+Build a complete production-ready web application called “EcoPulse”.
+
+Problem Statement:
+Design a solution that helps individuals understand, track, and reduce their carbon footprint through simple actions and personalized insights.
+
+The application must be polished, responsive, secure, accessible, efficient, and fully aligned with the problem statement. It should feel like a real SaaS product, not a static demo.
+
+Main Goal:
+EcoPulse allows users to log daily activities such as transport, electricity usage, food habits, shopping, and waste. The app calculates estimated carbon emissions in kg CO₂e, shows personalized insights, recommends simple actions, tracks goals, and motivates users through streaks, badges, and progress charts.
+
+Tech Stack:
+Frontend:
+- Next.js 15
+- TypeScript
+- Tailwind CSS
+- App Router
+- Recharts for data visualization
+- Lucide React for icons
+- Framer Motion for subtle animations
+
+Backend:
+- Next.js API routes/server actions
+- TypeScript business logic
+
+Database:
+- Supabase PostgreSQL
+
+Authentication:
+- Supabase Auth
+
+Testing:
+- Vitest
+- React Testing Library
+
+Deployment Target:
+- Vercel
+
+Important:
+Do not build only static pages.
+The app must have working forms, working calculations, protected routes, database integration, reusable components, loading states, error states, empty states, and seed/demo data.
+
+--------------------------------------------------
+APPLICATION NAME
+--------------------------------------------------
+
+Name: EcoPulse
+
+Tagline:
+“Track your footprint. Build greener habits.”
+
+Brand Personality:
+- Clean
+- Premium
+- Eco-friendly
+- Youthful
+- Trustworthy
+- Minimal but visually attractive
+
+Color Theme:
+- Forest green
+- Emerald
+- Lime accents
+- Soft neutral backgrounds
+- Dark mode support preferred if possible
+
+Design Style:
+- Modern dashboard SaaS UI
+- Rounded cards
+- Smooth shadows
+- Clean charts
+- Responsive mobile-first layout
+- Premium landing page
+- Accessible color contrast
+
+--------------------------------------------------
+CORE USER FLOW
+--------------------------------------------------
+
+1. User visits landing page.
+2. User signs up or logs in.
+3. User reaches dashboard.
+4. User adds daily carbon activity.
+5. System calculates estimated CO₂ emissions.
+6. Dashboard updates charts, totals, eco score, biggest emission source.
+7. User receives personalized insights.
+8. User completes suggested eco actions.
+9. User tracks CO₂ saved, streaks, goals, and badges.
+
+--------------------------------------------------
+PAGES TO BUILD
+--------------------------------------------------
+
+1. Landing Page - /
+2. Login Page - /login
+3. Register Page - /register
+4. Dashboard - /dashboard
+5. Add Entry Page - /dashboard/add-entry
+6. Insights Page - /dashboard/insights
+7. Goals Page - /dashboard/goals
+8. Eco Actions Page - /dashboard/actions
+9. Badges Page - /dashboard/badges
+10. Profile/Settings Page - /dashboard/settings
+
+All dashboard pages must be protected. Unauthenticated users should be redirected to login.
+
+--------------------------------------------------
+LANDING PAGE REQUIREMENTS
+--------------------------------------------------
+
+Create a premium landing page with:
+
+Hero Section:
+- App name EcoPulse
+- Tagline
+- CTA buttons:
+  - Get Started
+  - View Demo
+
+Sections:
+1. Problem Section
+Explain that most people do not know which daily habits create the most emissions.
+
+2. Solution Section
+Explain how EcoPulse tracks carbon footprint and recommends small actions.
+
+3. Features Section
+Show cards for:
+- Carbon Footprint Calculator
+- Personalized Eco Insights
+- Smart Action Suggestions
+- Goals and Progress
+- Streaks and Badges
+- Category-wise Charts
+
+4. How It Works
+Step 1: Log daily activity
+Step 2: Get CO₂ estimate
+Step 3: Complete eco actions
+Step 4: Track improvement
+
+5. Impact Section
+Show sample stats:
+- 12.5 kg CO₂ saved this month
+- 8-day green streak
+- 14 eco actions completed
+
+6. Final CTA
+Encourage user to start tracking.
+
+Landing page must be beautiful, responsive, and visually impressive.
+
+--------------------------------------------------
+AUTHENTICATION REQUIREMENTS
+--------------------------------------------------
+
+Use Supabase Auth.
+
+Create:
+- Register with email, password, name
+- Login with email and password
+- Logout button
+- Auth state handling
+- Protected dashboard layout
+
+Security:
+- Never expose Supabase service role key on frontend
+- Use Row Level Security policies
+- Users must only access their own data
+
+Add proper validation:
+- Email required
+- Password minimum length
+- Friendly error messages
+- Loading state during auth
+
+--------------------------------------------------
+DASHBOARD REQUIREMENTS
+--------------------------------------------------
+
+Dashboard must show:
+
+Top Metrics:
+1. Total CO₂ this week
+2. Total CO₂ this month
+3. CO₂ saved
+4. Eco Score out of 100
+5. Current green streak
+6. Biggest emission category
+
+Charts:
+1. Weekly CO₂ trend line chart
+2. Category breakdown pie chart
+3. Monthly progress bar
+
+Recent Activity:
+Show recent carbon entries:
+- Category
+- Activity type
+- Value
+- CO₂ amount
+- Date
+
+Personalized Insight Card:
+Show the most important insight based on user data.
+
+Example:
+“Transport is your highest emission source this week. Replacing two short bike rides with walking or public transport could reduce your weekly footprint.”
+
+Empty State:
+If user has no data, show:
+“Start by adding your first activity to calculate your carbon footprint.”
+
+--------------------------------------------------
+ADD CARBON ENTRY PAGE
+--------------------------------------------------
+
+Create a form where user can add an activity.
+
+Fields:
+- Category
+- Activity Type
+- Value
+- Unit
+- Date
+- Optional note
+
+Categories:
+1. Transport
+2. Electricity
+3. Food
+4. Shopping
+5. Waste
+
+Activity types:
+
+Transport:
+- Car travel
+- Bike/scooter travel
+- Bus travel
+- Train/metro travel
+- Auto rickshaw
+- Flight
+
+Electricity:
+- Electricity usage
+- AC usage
+- Fan usage
+- Refrigerator usage
+- Washing machine usage
+
+Food:
+- Vegetarian meal
+- Non-vegetarian meal
+- Chicken meal
+- Mutton meal
+- Dairy-heavy meal
+- Packaged food
+
+Shopping:
+- Clothing purchase
+- Online delivery
+- Electronics purchase
+- Fast fashion item
+
+Waste:
+- Plastic bottle
+- Plastic bag
+- Paper waste
+- Food waste
+- Recycled waste
+
+The app must automatically calculate CO₂ amount using emission factors.
+
+Show live preview:
+“Estimated emission: X kg CO₂e”
+
+After submit:
+- Save to Supabase
+- Show success toast
+- Redirect to dashboard or clear form
+
+--------------------------------------------------
+EMISSION FACTORS
+--------------------------------------------------
+
+Create a central file:
+
+src/lib/emission-factors.ts
+
+Use these approximate emission factors:
+
+Transport:
+- car_km: 0.192 kg CO₂e per km
+- bike_km: 0.103 kg CO₂e per km
+- bus_km: 0.089 kg CO₂e per km
+- train_km: 0.041 kg CO₂e per km
+- metro_km: 0.035 kg CO₂e per km
+- auto_km: 0.120 kg CO₂e per km
+- flight_km: 0.255 kg CO₂e per km
+
+Electricity:
+- electricity_kwh: 0.82 kg CO₂e per kWh
+- ac_hour: 1.2 kg CO₂e per hour
+- fan_hour: 0.05 kg CO₂e per hour
+- refrigerator_day: 1.5 kg CO₂e per day
+- washing_machine_cycle: 0.6 kg CO₂e per cycle
+
+Food:
+- vegetarian_meal: 1.5 kg CO₂e per meal
+- non_veg_meal: 5.0 kg CO₂e per meal
+- chicken_meal: 3.5 kg CO₂e per meal
+- mutton_meal: 7.5 kg CO₂e per meal
+- dairy_meal: 2.2 kg CO₂e per meal
+- packaged_food: 1.8 kg CO₂e per item
+
+Shopping:
+- clothing_item: 8.0 kg CO₂e per item
+- online_delivery: 1.2 kg CO₂e per order
+- electronics_item: 50.0 kg CO₂e per item
+- fast_fashion_item: 12.0 kg CO₂e per item
+
+Waste:
+- plastic_bottle: 0.08 kg CO₂e per bottle
+- plastic_bag: 0.03 kg CO₂e per bag
+- paper_waste_kg: 1.1 kg CO₂e per kg
+- food_waste_kg: 2.5 kg CO₂e per kg
+- recycled_waste_kg: -0.5 kg CO₂e per kg
+
+Important:
+For recycled waste, allow negative CO₂ value because it represents saved/reduced emissions.
+
+Create a reusable function:
+
+calculateCO2(activityType: string, value: number): number
+
+Also create:
+calculateEcoScore()
+getBiggestEmissionCategory()
+calculateWeeklyTotal()
+calculateMonthlyTotal()
+calculateCO2Saved()
+calculateGoalProgress()
+
+--------------------------------------------------
+INSIGHTS PAGE
+--------------------------------------------------
+
+Create rule-based personalized insights.
+
+Do not depend on paid AI APIs.
+
+Insights should be generated from user data.
+
+Rules:
+
+If transport is highest:
+- Suggest public transport, walking, cycling, carpooling.
+- Show estimated savings.
+
+If electricity is highest:
+- Suggest reducing AC usage, switching off idle devices, using natural light.
+- Suggest setting AC temperature to 24°C.
+
+If food is highest:
+- Suggest replacing some non-veg meals with vegetarian meals.
+- Suggest reducing packaged food.
+
+If shopping is highest:
+- Suggest mindful shopping and avoiding fast fashion.
+- Suggest combining online deliveries.
+
+If waste is highest:
+- Suggest reusable bottles, cloth bags, recycling, and reducing food waste.
+
+Insights page must include:
+- Main insight
+- Category-wise insights
+- Actionable recommendations
+- Estimated CO₂ savings
+- Priority level: High, Medium, Low
+- Impact score out of 10
+
+Example insight card:
+Title: “Transport is your biggest footprint source”
+Description: “You emitted 18.2 kg CO₂e from transport this week.”
+Action: “Use metro instead of bike for 10 km this week.”
+Estimated saving: “0.7 kg CO₂e”
+Priority: High
+
+--------------------------------------------------
+ECO ACTIONS PAGE
+--------------------------------------------------
+
+Generate suggested eco actions based on user data.
+
+Each action should have:
+- Title
+- Description
+- Category
+- Estimated CO₂ saving
+- Difficulty: Easy, Medium, Hard
+- Status: Pending or Completed
+
+Examples:
+1. Use public transport once this week
+2. Walk for short trips under 1 km
+3. Avoid plastic bottles for 3 days
+4. Try 2 vegetarian meals
+5. Reduce AC usage by 1 hour
+6. Combine online deliveries
+7. Recycle paper or plastic waste
+8. Carry a reusable water bottle
+9. Switch off idle appliances
+10. Use natural light during daytime
+
+User must be able to:
+- View actions
+- Mark action complete
+- See CO₂ saved update
+- See streak update
+
+When action is completed:
+- Save to database
+- Add estimated saving to user progress
+- Update badges if conditions are met
+
+--------------------------------------------------
+GOALS PAGE
+--------------------------------------------------
+
+Users can create and track goals.
+
+Goal fields:
+- Title
+- Target CO₂ reduction in kg
+- Deadline
+- Category optional
+- Status: active, completed, expired
+
+Show:
+- Goal cards
+- Progress bars
+- Days remaining
+- Current saved CO₂
+- Completion percentage
+
+Example goals:
+- Reduce monthly footprint by 10%
+- Save 5 kg CO₂ this month
+- Avoid plastic bottles for 7 days
+- Use public transport 5 times this month
+
+When goal reaches 100%, mark as completed.
+
+--------------------------------------------------
+BADGES AND GAMIFICATION
+--------------------------------------------------
+
+Create badge system.
+
+Badges:
+1. Green Starter
+Unlock when user adds first entry.
+
+2. Low Carbon Commuter
+Unlock when user completes 3 transport-saving actions.
+
+3. Energy Saver
+Unlock when user completes 3 electricity-saving actions.
+
+4. Plastic-Free Starter
+Unlock when user completes 3 waste-saving actions.
+
+5. Green Week Champion
+Unlock when user maintains a 7-day streak.
+
+6. Climate Hero
+Unlock when user saves 25 kg CO₂.
+
+Show badges page:
+- Unlocked badges
+- Locked badges
+- Progress toward next badge
+
+Eco Score:
+Calculate score out of 100.
+
+Suggested logic:
+- Start from 100.
+- Deduct points based on monthly CO₂.
+- Add points for completed actions.
+- Add points for streaks.
+- Keep score between 0 and 100.
+
+Green Streak:
+Track consecutive days where user logs activity or completes eco action.
+
+--------------------------------------------------
+DATABASE SCHEMA
+--------------------------------------------------
+
+Create Supabase SQL migration.
+
+Tables:
+
+profiles:
+- id uuid primary key references auth.users(id)
+- full_name text
+- email text
+- avatar_url text
+- created_at timestamp default now()
+
+carbon_entries:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) not null
+- category text not null
+- activity_type text not null
+- value numeric not null
+- unit text not null
+- co2_amount numeric not null
+- entry_date date not null
+- note text
+- created_at timestamp default now()
+
+eco_actions:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) not null
+- title text not null
+- description text
+- category text
+- estimated_saving numeric default 0
+- difficulty text
+- completed boolean default false
+- completed_at timestamp
+- created_at timestamp default now()
+
+goals:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) not null
+- title text not null
+- category text
+- target_reduction numeric not null
+- current_progress numeric default 0
+- deadline date not null
+- status text default 'active'
+- created_at timestamp default now()
+
+badges:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) not null
+- badge_name text not null
+- badge_description text
+- unlocked_at timestamp default now()
+
+user_stats:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) not null
+- total_co2_saved numeric default 0
+- current_streak int default 0
+- longest_streak int default 0
+- eco_score int default 100
+- last_activity_date date
+- updated_at timestamp default now()
+
+Enable Row Level Security for all tables.
+
+Policies:
+- Users can select, insert, update, and delete only their own rows.
+- profiles table should allow user to read and update own profile.
+
+Create database indexes:
+- carbon_entries user_id
+- carbon_entries entry_date
+- eco_actions user_id
+- goals user_id
+- badges user_id
+
+--------------------------------------------------
+SUPABASE REQUIREMENTS
+--------------------------------------------------
+
+Create files:
+- src/lib/supabase/client.ts
+- src/lib/supabase/server.ts
+- src/lib/supabase/middleware.ts if needed
+
+Use environment variables:
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+Do not use service role key in frontend.
+
+Create .env.example with required variables.
+
+--------------------------------------------------
+COMPONENTS TO CREATE
+--------------------------------------------------
+
+Create reusable components:
+
+Layout:
+- Navbar
+- Sidebar
+- DashboardLayout
+- Footer
+
+UI:
+- Button
+- Card
+- Input
+- Select
+- Textarea
+- Badge
+- ProgressBar
+- EmptyState
+- LoadingSpinner
+- Toast
+- StatCard
+
+Feature Components:
+- CarbonEntryForm
+- EmissionPreview
+- WeeklyTrendChart
+- CategoryPieChart
+- EcoScoreCard
+- InsightCard
+- ActionCard
+- GoalCard
+- BadgeCard
+- RecentEntriesTable
+
+--------------------------------------------------
+FOLDER STRUCTURE
+--------------------------------------------------
+
+Use a clean folder structure:
+
+src/
+  app/
+    page.tsx
+    login/
+    register/
+    dashboard/
+      page.tsx
+      add-entry/
+      insights/
+      goals/
+      actions/
+      badges/
+      settings/
+  components/
+    layout/
+    ui/
+    dashboard/
+    forms/
+    charts/
+  lib/
+    supabase/
+    emission-factors.ts
+    calculations.ts
+    insights.ts
+    actions.ts
+    badges.ts
+    validations.ts
+    utils.ts
+  types/
+    database.ts
+    carbon.ts
+  tests/
+    calculations.test.ts
+    insights.test.ts
+    goals.test.ts
+
+--------------------------------------------------
+API / SERVER ACTION REQUIREMENTS
+--------------------------------------------------
+
+Create server actions or API handlers for:
+
+Carbon Entries:
+- Create entry
+- Get user entries
+- Delete entry
+- Get weekly summary
+- Get monthly summary
+
+Goals:
+- Create goal
+- Update goal
+- Delete goal
+- Get user goals
+
+Eco Actions:
+- Generate suggested actions
+- Complete action
+- Get actions
+
+Badges:
+- Check and unlock badges
+- Get user badges
+
+Stats:
+- Get user dashboard stats
+- Update streak
+- Update eco score
+
+--------------------------------------------------
+VALIDATION REQUIREMENTS
+--------------------------------------------------
+
+Use Zod for validation.
+
+Validate:
+- Category required
+- Activity type required
+- Value must be positive number
+- Date required
+- Goal target must be positive
+- Deadline must be future date
+- Email format
+- Password length
+
+Show friendly validation messages.
+
+--------------------------------------------------
+ACCESSIBILITY REQUIREMENTS
+--------------------------------------------------
+
+Follow accessibility best practices:
+
+- Semantic HTML
+- Proper heading hierarchy
+- Label all form inputs
+- Keyboard navigable interface
+- Visible focus states
+- Sufficient color contrast
+- aria-labels for icon buttons
+- alt text for images/icons where needed
+- Do not rely only on color to show status
+
+--------------------------------------------------
+SECURITY REQUIREMENTS
+--------------------------------------------------
+
+Security is important because code is evaluated for security.
+
+Implement:
+- Supabase Row Level Security
+- Protected routes
+- Input validation with Zod
+- No secrets in client
+- Safe environment variables
+- Error handling without leaking sensitive data
+- User can only access their own data
+- Avoid unsafe HTML rendering
+- Sanitize user notes if displayed
+
+--------------------------------------------------
+EFFICIENCY REQUIREMENTS
+--------------------------------------------------
+
+Efficiency is important.
+
+Implement:
+- Server-side data fetching where useful
+- Avoid unnecessary client-side requests
+- Use reusable calculation functions
+- Use database indexes
+- Keep components optimized
+- Avoid repeated heavy calculations
+- Use loading skeletons
+- Use pagination or limit recent entries
+
+--------------------------------------------------
+TESTING REQUIREMENTS
+--------------------------------------------------
+
+Add tests using Vitest.
+
+Test:
+1. calculateCO2()
+2. calculateEcoScore()
+3. getBiggestEmissionCategory()
+4. generateInsights()
+5. calculateGoalProgress()
+6. badge unlock logic
+
+Example test cases:
+- car_km with 10 km should return 1.92
+- veg meal with 2 meals should return 3.0
+- recycled waste should return negative value
+- biggest category should return category with highest CO₂
+- goal progress should not exceed 100%
+
+Add npm scripts:
+- test
+- test:watch
+- lint
+- build
+
+--------------------------------------------------
+DEMO DATA REQUIREMENTS
+--------------------------------------------------
+
+Create seed/demo data for a demo user or mock mode.
+
+Demo should include:
+- Transport entries
+- Electricity entries
+- Food entries
+- Waste entries
+- Completed actions
+- Active goals
+- Unlocked badges
+
+Add a “View Demo” button on landing page that allows users to explore a demo dashboard without needing real data.
+
+If demo auth is complex, create a local demo mode using mock data.
+
+--------------------------------------------------
+README REQUIREMENTS
+--------------------------------------------------
+
+Create a professional README.md.
+
+README must include:
+
+1. Project Title
+EcoPulse - Personal Carbon Footprint Tracker
+
+2. Problem Statement
+Design a solution that helps individuals understand, track, and reduce their carbon footprint through simple actions and personalized insights.
+
+3. Solution Overview
+Explain what EcoPulse does.
+
+4. Features
+- Carbon calculator
+- Dashboard
+- Insights
+- Eco actions
+- Goals
+- Badges
+- Streaks
+- Authentication
+- Supabase database
+
+5. Tech Stack
+
+6. System Architecture
+
+7. Database Schema
+
+8. Environment Variables
+
+9. Local Setup Instructions
+
+10. Supabase Setup Instructions
+
+11. How Carbon Calculation Works
+
+12. Security Measures
+
+13. Accessibility Measures
+
+14. Testing
+
+15. Screenshots Section
+Add placeholders:
+- Landing Page
+- Dashboard
+- Add Entry
+- Insights
+- Goals
+
+16. Future Scope
+- AI-generated monthly carbon reports
+- Smart meter integration
+- Public transport recommendations
+- Family challenges
+- College/company leaderboard
+- Carbon offset marketplace
+- WhatsApp reminders
+
+17. License
+
+--------------------------------------------------
+UI QUALITY REQUIREMENTS
+--------------------------------------------------
+
+The UI must look polished enough for a hackathon/code submission.
+
+Use:
+- Clean sidebar dashboard
+- Responsive grid cards
+- Charts with Recharts
+- Icons from Lucide React
+- Smooth hover states
+- Empty states
+- Loading states
+- Toast notifications
+- Mobile responsive navigation
+
+Dashboard layout:
+Left sidebar on desktop:
+- Dashboard
+- Add Entry
+- Insights
+- Actions
+- Goals
+- Badges
+- Settings
+
+Top bar:
+- App name
+- User name
+- Logout button
+
+Mobile:
+- Use collapsible navigation or bottom nav.
+
+--------------------------------------------------
+PROBLEM ALIGNMENT REQUIREMENTS
+--------------------------------------------------
+
+Make sure every feature aligns with the problem statement.
+
+The app must help users:
+1. Understand their carbon footprint
+2. Track daily activities
+3. Reduce emissions using simple actions
+4. Receive personalized insights
+5. Monitor progress over time
+
+Do not add unrelated features.
+
+--------------------------------------------------
+FINAL DELIVERABLE
+--------------------------------------------------
+
+Generate the complete working codebase.
+
+The app must:
+- Run with npm install and npm run dev
+- Build successfully with npm run build
+- Have no TypeScript errors
+- Have clean reusable code
+- Have working authentication
+- Have working Supabase database integration
+- Have protected routes
+- Have working carbon calculations
+- Have working insights
+- Have working actions/goals/badges
+- Have tests
+- Have README
+- Have .env.example
+- Have SQL migration file
+- Be responsive and visually polished
+
+Before finishing:
+- Check for missing imports
+- Check for broken routes
+- Check TypeScript types
+- Check build errors
+- Check Supabase client/server usage
+- Check accessibility labels
+- Check that no secret keys are exposed
+
+Make the solution strong for these evaluation criteria:
+- Code Quality
+- Security
+- Efficiency
+- Testing
+- Accessibility
+- Problem Statement Alignment
