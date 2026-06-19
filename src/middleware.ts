@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
 
   if (!url || !key) {
     const local = request.cookies.get("ecopulse-local")?.value === "true";
-    if (local) return response;
+    if (process.env.NODE_ENV === "development" && local) return response;
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     return NextResponse.redirect(login);

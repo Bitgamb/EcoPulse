@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getLocalAccount } from "@/lib/local-auth";
+import { getLocalAccount, isLocalAuthAllowed } from "@/lib/local-auth";
 import { createClient } from "@/lib/supabase/client";
 
 export type UserIdentity = { name: string; email: string; initials: string; mode: "demo" | "local" | "supabase" };
@@ -16,7 +16,7 @@ export function useUser() {
       return;
     }
     const local = getLocalAccount();
-    if (local && document.cookie.includes("ecopulse-local=true")) {
+    if (local && isLocalAuthAllowed() && document.cookie.includes("ecopulse-local=true")) {
       setUser({ name: local.name, email: local.email, initials: initialsFor(local.name), mode: "local" });
       return;
     }

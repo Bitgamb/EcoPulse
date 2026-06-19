@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authSchema } from "@/lib/validations";
-import { getLocalAccount, hashPassword, saveLocalAccount, startLocalSession } from "@/lib/local-auth";
+import { getLocalAccount, hashPassword, isLocalAuthAllowed, saveLocalAccount, startLocalSession } from "@/lib/local-auth";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,10 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         setSuccess("Account created. Check your email to confirm your address, then log in.");
         return;
       }
+    } else if (!isLocalAuthAllowed()) {
+      setLoading(false);
+      setError("Supabase is not configured for this deployment. Add the public Supabase environment variables in Vercel and redeploy the project.");
+      return;
     } else if (mode === "register") {
       const passwordHash = await hashPassword(parsed.data.password);
       saveLocalAccount({ name: parsed.data.name || "EcoPulse user", email: parsed.data.email, passwordHash });

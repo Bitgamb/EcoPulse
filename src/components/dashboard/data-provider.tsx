@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { demoActions,demoEntries,demoGoals } from "@/lib/demo-data";
 import type { CarbonEntry,EcoAction,Goal } from "@/types/carbon";
+import { isLocalAuthAllowed } from "@/lib/local-auth";
 type State={entries:CarbonEntry[];actions:EcoAction[];goals:Goal[];streak:number;addEntry:(e:CarbonEntry)=>void;completeAction:(id:string)=>void;addGoal:(g:Goal)=>void;deleteGoal:(id:string)=>void;reset:()=>void};
 const C = createContext<State | null>(null);
 const DEMO_KEY = "ecopulse-data";
@@ -15,7 +16,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const demo = document.cookie.includes("ecopulse-demo=true");
-    const local = document.cookie.includes("ecopulse-local=true");
+    const local = isLocalAuthAllowed() && document.cookie.includes("ecopulse-local=true");
     if (demo || local) {
       const storageKey = demo ? DEMO_KEY : USER_KEY;
       const defaults = demo
