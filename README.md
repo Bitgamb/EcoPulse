@@ -67,11 +67,17 @@ Tests cover emission factors, negative recycling, eco-score bounds, largest-cate
 
 ## Screenshots
 
-- Landing Page - add `docs/landing.png`
-- Dashboard - add `docs/dashboard.png`
-- Add Entry - add `docs/add-entry.png`
-- Insights - add `docs/insights.png`
-- Goals - add `docs/goals.png`
+### Landing Page
+
+![EcoPulse landing page](docs/screenshots/01-landing.png)
+
+### Dashboard
+
+![EcoPulse dashboard](docs/screenshots/02-dashboard.png)
+
+### Carbon Calculator
+
+![EcoPulse activity calculator](docs/screenshots/03-add-entry.png)
 
 ## Future Scope
 
