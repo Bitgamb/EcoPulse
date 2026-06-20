@@ -23,9 +23,6 @@ type EcoDataState = {
 
 const EcoDataContext = createContext<EcoDataState | null>(null);
 const DEMO_KEY = "ecopulse-data";
-const USER_KEY = "ecopulse-user-data";
-
-const starterActions = () => demoActions.map((action) => ({ ...action, completed: false }));
 
 function readLocalData(key: string, fallback: Pick<DashboardData, "entries" | "actions" | "goals">) {
   try {
@@ -57,12 +54,9 @@ export function DataProvider({
   const mode = initialData.mode;
 
   useEffect(() => {
-    if (mode === "supabase") return;
-    const fallback =
-      mode === "demo"
-        ? { entries: demoEntries, actions: demoActions, goals: demoGoals }
-        : { entries: [], actions: starterActions(), goals: [] };
-    const data = readLocalData(mode === "demo" ? DEMO_KEY : USER_KEY, fallback);
+    if (mode !== "demo") return;
+    const fallback = { entries: demoEntries, actions: demoActions, goals: demoGoals };
+    const data = readLocalData(DEMO_KEY, fallback);
     setEntries(data.entries);
     setActions(data.actions);
     setGoals(data.goals);
@@ -71,7 +65,7 @@ export function DataProvider({
 
   useEffect(() => {
     if (!hydrated || mode === "supabase") return;
-    localStorage.setItem(mode === "demo" ? DEMO_KEY : USER_KEY, JSON.stringify({ entries, actions, goals }));
+    localStorage.setItem(DEMO_KEY, JSON.stringify({ entries, actions, goals }));
   }, [entries, actions, goals, hydrated, mode]);
 
   const value = useMemo<EcoDataState>(
@@ -158,15 +152,9 @@ export function DataProvider({
           setError("Account data cannot be reset from this screen yet.");
           return;
         }
-        if (mode === "demo") {
-          setEntries(demoEntries);
-          setActions(demoActions);
-          setGoals(demoGoals);
-        } else {
-          setEntries([]);
-          setActions(starterActions());
-          setGoals([]);
-        }
+        setEntries(demoEntries);
+        setActions(demoActions);
+        setGoals(demoGoals);
       },
     }),
     [entries, actions, goals, hydrated, error, mode],

@@ -42,7 +42,7 @@ export type Insight = {
   category: Category;
 };
 
-export type DataMode = "demo" | "local" | "supabase";
+export type DataMode = "demo" | "supabase";
 
 export type DashboardData = {
   entries: CarbonEntry[];

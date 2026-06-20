@@ -1,23 +1,19 @@
 ﻿"use client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ArrowRight, Flame, Leaf, Plus, Sparkles, TrendingDown } from "lucide-react";
+import { ArrowRight, Plus, Sparkles } from "lucide-react";
 import { useEcoData } from "./data-provider";
-import {
-  calculateCO2Saved,
-  calculateEcoScore,
-  calculateMonthlyTotal,
-  calculateWeeklyTotal,
-  getBiggestEmissionCategory,
-} from "@/lib/calculations";
+import { calculateEcoScore, calculateMonthlyTotal, getBiggestEmissionCategory } from "@/lib/calculations";
 import { generateInsights } from "@/lib/insights";
 import { Card } from "@/components/ui/card";
 import { pretty } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/hooks/use-user";
 import { EmptyState } from "@/components/ui/empty-state";
+import { DashboardSummary } from "./dashboard-summary";
+import { RecentActivity } from "./recent-activity";
 const ChartSkeleton = () => (
-  <div className="h-64 animate-pulse rounded-md bg-ink/5" aria-label="Loading chart" />
+  <div className="h-64 animate-pulse rounded-md bg-ink/5" role="status" aria-label="Loading chart" />
 );
 const WeeklyTrend = dynamic(
   () => import("@/components/charts/weekly-trend").then((module) => module.WeeklyTrend),
@@ -28,32 +24,30 @@ const CategoryPie = dynamic(
   { ssr: false, loading: ChartSkeleton },
 );
 export function DashboardView() {
-  const { entries, actions, goals, streak } = useEcoData(),
-    user = useUser();
-  const completed = actions.filter((a) => a.completed),
-    saved = calculateCO2Saved(
-      entries,
-      completed.reduce((s, a) => s + a.estimated_saving, 0),
-    ),
-    month = calculateMonthlyTotal(entries),
-    score = calculateEcoScore(month, completed.length, streak),
-    insight = generateInsights(entries)[0],
-    biggest = getBiggestEmissionCategory(entries),
-    firstName = user.name.split(" ")[0],
-    today = new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long" }).format(
-      new Date(),
-    ),
-    goal = goals[0],
-    goalPct = goal ? Math.min(100, Math.round((goal.current_progress / goal.target_reduction) * 100)) : 0;
+  const { entries, actions, goals, streak } = useEcoData();
+  const user = useUser();
+  const completed = actions.filter((action) => action.completed);
+  const month = calculateMonthlyTotal(entries);
+  const score = calculateEcoScore(month, completed.length, streak);
+  const insight = generateInsights(entries)[0];
+  const biggest = getBiggestEmissionCategory(entries);
+  const firstName = user.name.split(" ")[0];
+  const now = new Date();
+  const today = new Intl.DateTimeFormat("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(now);
+  const greeting = now.getHours() < 12 ? "morning" : now.getHours() < 18 ? "afternoon" : "evening";
+  const goal = goals[0];
+  const goalPct = goal ? Math.min(100, Math.round((goal.current_progress / goal.target_reduction) * 100)) : 0;
   return (
     <>
       <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-wide text-emerald">{today}</p>
           <h1 className="mt-1 font-display text-4xl">
-            Good{" "}
-            {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"},{" "}
-            {firstName}.
+            Good {greeting}, {firstName}.
           </h1>
           <p className="mt-1 text-sm text-ink/55">
             {entries.length
@@ -65,44 +59,11 @@ export function DashboardView() {
           href="/dashboard/add-entry"
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-ink px-5 text-sm font-bold text-white shadow-sm hover:bg-emerald"
         >
-          <Plus size={17} />
+          <Plus size={17} aria-hidden="true" />
           Add activity
         </Link>
       </header>
-      <section className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {[
-          ["This week", calculateWeeklyTotal(entries).toFixed(1) + " kg", "CO2‚e recorded", Leaf],
-          [
-            "This month",
-            month.toFixed(1) + " kg",
-            entries.length
-              ? `${entries.length} logged ${entries.length === 1 ? "activity" : "activities"}`
-              : "No activity yet",
-            TrendingDown,
-          ],
-          ["CO2‚ saved", saved.toFixed(1) + " kg", "from completed actions", Sparkles],
-          [
-            "Green streak",
-            streak + ` ${streak === 1 ? "day" : "days"}`,
-            streak ? "Keep it going" : "Log today to begin",
-            Flame,
-          ],
-        ].map(([label, value, sub, Icon]) => (
-          <Card
-            key={String(label)}
-            className="min-w-0 p-4 transition hover:-translate-y-0.5 hover:shadow-soft sm:p-5"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-[10px] font-extrabold uppercase text-ink/45 sm:text-xs">{label as string}</p>
-              <span className="grid size-7 shrink-0 place-items-center rounded-md bg-paper text-emerald sm:size-8">
-                <Icon size={16} />
-              </span>
-            </div>
-            <strong className="mt-4 block text-xl sm:mt-5 sm:text-2xl">{value as string}</strong>
-            <span className="block truncate text-[10px] text-ink/50 sm:text-xs">{sub as string}</span>
-          </Card>
-        ))}
-      </section>
+      <DashboardSummary entries={entries} actions={actions} streak={streak} />
       {!entries.length ? (
         <section className="mt-4 overflow-hidden rounded-lg bg-ink text-white">
           <div className="grid lg:grid-cols-[1.1fr_.9fr]">
@@ -147,7 +108,7 @@ export function DashboardView() {
                 </span>
                 <div>
                   <strong className="text-sm">Take a simple action</strong>
-                  <p className="text-xs text-white/45">Start saving CO2‚e this week</p>
+                  <p className="text-xs text-white/45">Start saving CO2e this week</p>
                 </div>
               </div>
             </div>
@@ -160,7 +121,7 @@ export function DashboardView() {
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <h2 className="font-extrabold">Weekly footprint</h2>
-                  <p className="text-xs text-ink/50">Daily CO2‚e in kilograms</p>
+                  <p className="text-xs text-ink/50">Daily CO2e in kilograms</p>
                 </div>
                 <span className="rounded-md bg-emerald/10 px-2 py-1 text-xs font-bold text-emerald">
                   Last 7 days
@@ -232,54 +193,7 @@ export function DashboardView() {
           </section>
         </>
       )}
-      <Card className="mt-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-extrabold">Recent activity</h2>
-            <p className="text-xs text-ink/50">Your latest logged choices</p>
-          </div>
-          <Link href="/dashboard/add-entry" className="text-sm font-bold text-emerald">
-            Add new
-          </Link>
-        </div>
-        {entries.length ? (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="border-b border-ink/10 text-xs uppercase text-ink/45">
-                <tr>
-                  <th className="py-3">Activity</th>
-                  <th>Category</th>
-                  <th>Value</th>
-                  <th>Date</th>
-                  <th className="text-right">CO2‚e</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.slice(0, 5).map((e) => (
-                  <tr key={e.id} className="border-b border-ink/5">
-                    <td className="py-3 font-bold">{pretty(e.activity_type)}</td>
-                    <td className="capitalize text-ink/60">{e.category}</td>
-                    <td>
-                      {e.value} {e.unit}
-                    </td>
-                    <td className="text-ink/60">
-                      {new Date(e.entry_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                    </td>
-                    <td className={`text-right font-bold ${e.co2_amount < 0 ? "text-emerald" : ""}`}>
-                      {e.co2_amount.toFixed(2)} kg
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <EmptyState
-            title="Your activity feed starts here"
-            body="Add a journey, meal, purchase, energy use, or waste activity to begin."
-          />
-        )}
-      </Card>
+      <RecentActivity entries={entries} />
     </>
   );
 }

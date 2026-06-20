@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getLocalAccount, isLocalAuthAllowed } from "@/lib/local-auth";
 import { createClient } from "@/lib/supabase/client";
 
 export type UserIdentity = {
   name: string;
   email: string;
   initials: string;
-  mode: "demo" | "local" | "supabase";
+  mode: "demo" | "supabase";
 };
 
 const initialsFor = (name: string) =>
@@ -24,17 +23,12 @@ export function useUser() {
     name: "EcoPulse user",
     email: "",
     initials: "EP",
-    mode: "local",
+    mode: "supabase",
   });
 
   useEffect(() => {
     if (document.cookie.includes("ecopulse-demo=true")) {
       setUser({ name: "Aarav Sharma", email: "demo@ecopulse.app", initials: "AS", mode: "demo" });
-      return;
-    }
-    const local = getLocalAccount();
-    if (local && isLocalAuthAllowed() && document.cookie.includes("ecopulse-local=true")) {
-      setUser({ name: local.name, email: local.email, initials: initialsFor(local.name), mode: "local" });
       return;
     }
     createClient()

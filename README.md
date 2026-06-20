@@ -18,7 +18,7 @@ Next.js 15 App Router, TypeScript, Tailwind CSS, Recharts, Lucide React, Supabas
 
 ## Architecture
 
-The dashboard is server-prefetched and loads independent Supabase queries concurrently. Server routes validate all writes and obtain the authenticated user from secure Supabase cookies. RLS provides a second authorization boundary in PostgreSQL, while action completion and goal progress use one atomic database function. Chart code is loaded on demand to keep the initial dashboard bundle lean. Shared pure functions drive both UI calculations and tests. Demo mode uses the same typed UI contracts and persists state in `localStorage`.
+The dashboard is server-prefetched and loads independent Supabase queries concurrently. Server routes validate bounded inputs and obtain the authenticated user from secure Supabase cookies. RLS provides a second authorization boundary in PostgreSQL, while action completion and goal progress use one atomic database function. Real accounts always use Supabase Auth; the credential-free demo stores only sample workspace data in `localStorage`. Chart code is loaded on demand to keep the initial dashboard bundle lean. Shared pure functions drive both UI calculations and tests.
 
 ## Local Setup
 
@@ -64,7 +64,7 @@ npm run check
 npm run build
 ```
 
-`npm run check` runs TypeScript, the test suite, and formatting validation. Tests cover emission factors, date boundaries, negative recycling, eco-score bounds, largest-category selection, goal progression, API error handling, insight priority, and badge unlocks.
+`npm run check` runs TypeScript, ESLint with zero warnings, coverage thresholds, and formatting validation. Tests cover emission factors, date boundaries, negative recycling, eco-score bounds, largest-category selection, goal progression, API error handling, input validation, safe redirects, accessibility, insight priority, and badge unlocks.
 
 ## Screenshots
 

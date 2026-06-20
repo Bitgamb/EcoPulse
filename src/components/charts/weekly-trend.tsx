@@ -20,7 +20,7 @@ export function WeeklyTrend({ entries }: { entries: CarbonEntry[] }) {
   }, [entries]);
 
   return (
-    <div className="h-64 w-full" aria-label="Weekly carbon emissions line chart">
+    <div className="h-64 w-full" role="img" aria-label="Weekly carbon emissions for the last seven days">
       <ResponsiveContainer>
         <LineChart data={data} margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#dce4dc" />

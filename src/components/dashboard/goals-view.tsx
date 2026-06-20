@@ -60,7 +60,7 @@ export function GoalsView() {
           </p>
         </div>
         <Button onClick={() => setOpen(true)}>
-          <Plus size={17} />
+          <Plus size={17} aria-hidden="true" />
           New goal
         </Button>
       </header>
@@ -73,7 +73,7 @@ export function GoalsView() {
             <Card key={goal.id}>
               <div className="flex items-start justify-between">
                 <span className="grid size-10 place-items-center rounded-md bg-emerald/10 text-emerald">
-                  <Target />
+                  <Target aria-hidden="true" />
                 </span>
                 <button
                   disabled={deletingId === goal.id}
@@ -81,7 +81,7 @@ export function GoalsView() {
                   className="text-ink/35 hover:text-red-600 disabled:opacity-50"
                   aria-label={`Delete ${goal.title}`}
                 >
-                  {deletingId === goal.id ? <Spinner /> : <Trash2 size={17} />}
+                  {deletingId === goal.id ? <Spinner /> : <Trash2 size={17} aria-hidden="true" />}
                 </button>
               </div>
               <h2 className="mt-5 text-lg font-extrabold">{goal.title}</h2>
@@ -96,7 +96,7 @@ export function GoalsView() {
               </div>
               <div className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4 text-xs text-ink/50">
                 <span className="flex items-center gap-1">
-                  <Calendar size={14} />
+                  <Calendar size={14} aria-hidden="true" />
                   {days} days remaining
                 </span>
                 <span className="capitalize">{goal.category || "All categories"}</span>
@@ -108,9 +108,17 @@ export function GoalsView() {
 
       {open && (
         <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/45 p-4">
-          <form onSubmit={submit} className="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
+          <form
+            onSubmit={submit}
+            className="w-full max-w-md rounded-lg bg-white p-6 shadow-soft"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="goal-dialog-title"
+          >
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl">Create a goal</h2>
+              <h2 id="goal-dialog-title" className="font-display text-2xl">
+                Create a goal
+              </h2>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close">
                 <X />
               </button>
@@ -118,7 +126,7 @@ export function GoalsView() {
             <div className="mt-5 space-y-4">
               <div>
                 <label htmlFor="title">Goal title</label>
-                <input id="title" name="title" required placeholder="Save 5 kg this month" />
+                <input id="title" name="title" required autoFocus placeholder="Save 5 kg this month" />
               </div>
               <div>
                 <label htmlFor="target_reduction">Target reduction (kg)</label>

@@ -17,7 +17,11 @@ export function CategoryPie({ entries }: { entries: CarbonEntry[] }) {
   }, [entries]);
 
   return (
-    <div className="grid grid-cols-[1fr_120px] items-center">
+    <div
+      className="grid grid-cols-[1fr_120px] items-center"
+      role="img"
+      aria-label={`Carbon emissions by category: ${data.map((item) => `${item.name} ${item.value.toFixed(1)} kilograms`).join(", ")}`}
+    >
       <div className="h-52">
         <ResponsiveContainer>
           <PieChart>
@@ -33,7 +37,7 @@ export function CategoryPie({ entries }: { entries: CarbonEntry[] }) {
       <div className="space-y-2">
         {data.map((item, index) => (
           <div key={item.name} className="flex items-center gap-2 text-xs">
-            <span className="size-2.5 rounded-sm" style={{ background: colors[index] }} />
+            <span className="size-2.5 rounded-sm" style={{ background: colors[index] }} aria-hidden="true" />
             <span className="text-ink/65">{item.name}</span>
           </div>
         ))}

@@ -1,8 +1,10 @@
-﻿create or replace function public.complete_eco_action(p_action_id uuid)
+begin;
+
+create or replace function public.complete_eco_action(p_action_id uuid)
 returns public.eco_actions
 language plpgsql
 security invoker
-set search_path = public
+set search_path = ''
 as $$
 declare
   completed_action public.eco_actions;
@@ -41,4 +43,7 @@ begin
 end;
 $$;
 
+revoke all on function public.complete_eco_action(uuid) from public, anon;
 grant execute on function public.complete_eco_action(uuid) to authenticated;
+
+commit;

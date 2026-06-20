@@ -1,6 +1,9 @@
 .next
 node_modules
 coverage
+.npm-cache
+.tmp
+.codex-remote-attachments
 public/*.png
 docs/screenshots
 PRD.txt

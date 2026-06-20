@@ -7,13 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authSchema } from "@/lib/validations";
-import {
-  getLocalAccount,
-  hashPassword,
-  isLocalAuthAllowed,
-  saveLocalAccount,
-  startLocalSession,
-} from "@/lib/local-auth";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [loading, setLoading] = useState(false);
@@ -38,49 +31,31 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
     setLoading(true);
     const supabase = createClient();
-    if (supabase) {
-      const result =
-        mode === "login"
-          ? await supabase.auth.signInWithPassword(parsed.data)
-          : await supabase.auth.signUp({
-              email: parsed.data.email,
-              password: parsed.data.password,
-              options: { data: { full_name: parsed.data.name } },
-            });
+    if (!supabase) {
       setLoading(false);
-      if (result.error) {
-        setError(result.error.message);
-        return;
-      }
-      if (mode === "register" && !result.data.session) {
-        setSuccess("Account created. Check your email to confirm your address, then log in.");
-        return;
-      }
-    } else if (!isLocalAuthAllowed()) {
-      setLoading(false);
-      setError(
-        "Supabase is not configured for this deployment. Add the public Supabase environment variables in Vercel and redeploy the project.",
-      );
+      setError("Authentication is unavailable because Supabase is not configured.");
       return;
-    } else if (mode === "register") {
-      const passwordHash = await hashPassword(parsed.data.password);
-      saveLocalAccount({ name: parsed.data.name || "EcoPulse user", email: parsed.data.email, passwordHash });
-      localStorage.setItem("ecopulse-user-data", JSON.stringify({ entries: [], actions: [], goals: [] }));
-      startLocalSession();
-      setLoading(false);
-    } else {
-      const account = getLocalAccount();
-      const passwordHash = await hashPassword(parsed.data.password);
-      setLoading(false);
-      if (
-        !account ||
-        account.email.toLowerCase() !== parsed.data.email.toLowerCase() ||
-        account.passwordHash !== passwordHash
-      ) {
-        setError("Email or password is incorrect. Create a local account first if you have not registered.");
-        return;
-      }
-      startLocalSession();
+    }
+
+    const result =
+      mode === "login"
+        ? await supabase.auth.signInWithPassword({
+            email: parsed.data.email,
+            password: parsed.data.password,
+          })
+        : await supabase.auth.signUp({
+            email: parsed.data.email,
+            password: parsed.data.password,
+            options: { data: { full_name: parsed.data.name } },
+          });
+    setLoading(false);
+    if (result.error) {
+      setError(result.error.message);
+      return;
+    }
+    if (mode === "register" && !result.data.session) {
+      setSuccess("Account created. Check your email to confirm your address, then log in.");
+      return;
     }
 
     router.push("/dashboard");

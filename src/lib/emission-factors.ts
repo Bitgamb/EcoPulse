@@ -40,14 +40,18 @@ export const activities = {
   },
 } as const;
 export type ActivityType = { [K in Category]: keyof (typeof activities)[K] }[Category];
+
+const activityIndex = new Map(
+  Object.values(activities)
+    .flatMap((category) => Object.entries(category))
+    .map(([key, metadata]) => [key, metadata] as const),
+);
+
 export function calculateCO2(activityType: string, value: number) {
-  const item = Object.values(activities)
-    .flatMap((v) => Object.entries(v))
-    .find(([key]) => key === activityType)?.[1];
+  const item = activityIndex.get(activityType);
   return item ? Math.round(value * Number(item[1]) * 100) / 100 : 0;
 }
+
 export function getActivityMeta(type: string) {
-  return Object.values(activities)
-    .flatMap((v) => Object.entries(v))
-    .find(([key]) => key === type)?.[1];
+  return activityIndex.get(type);
 }

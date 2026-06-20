@@ -9,3 +9,5 @@ coverage
 .prod-server.log
 .prod-server.err
 .codex-remote-attachments/
+.npm-cache/
+.tmp/

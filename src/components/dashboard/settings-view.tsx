@@ -82,9 +82,7 @@ export function SettingsView() {
               <div>
                 <h2 className="font-extrabold">Your data is private</h2>
                 <p className="mt-1 text-xs leading-5 text-ink/50">
-                  {user.mode === "local"
-                    ? "This local account stores its data only in this browser."
-                    : "Row-level security ensures account data can only be accessed by its owner."}
+                  Row-level security ensures account data can only be accessed by its owner.
                 </p>
               </div>
             </div>

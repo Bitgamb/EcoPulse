@@ -5,6 +5,10 @@ import { demoActions, demoEntries, demoGoals } from "@/lib/demo-data";
 import { createClient } from "@/lib/supabase/server";
 import type { CarbonEntry, DashboardData, EcoAction, Goal } from "@/types/carbon";
 
+const ENTRY_COLUMNS = "id,category,activity_type,value,unit,co2_amount,entry_date,note";
+const ACTION_COLUMNS = "id,title,description,category,estimated_saving,difficulty,completed";
+const GOAL_COLUMNS = "id,title,category,target_reduction,current_progress,deadline,status";
+
 const emptyData = (mode: DashboardData["mode"], error?: string): DashboardData => ({
   entries: [],
   actions: [],
@@ -19,17 +23,17 @@ export async function loadDashboardData(): Promise<DashboardData> {
     return { entries: demoEntries, actions: demoActions, goals: demoGoals, mode: "demo" };
   }
 
-  if (process.env.NODE_ENV === "development" && cookieStore.get("ecopulse-local")?.value === "true") {
-    return emptyData("local");
-  }
-
   const supabase = await createClient();
   if (!supabase) return emptyData("supabase", "Supabase is not configured.");
 
   const [entriesResult, actionsResult, goalsResult] = await Promise.all([
-    supabase.from("carbon_entries").select("*").order("entry_date", { ascending: false }).limit(100),
-    supabase.from("eco_actions").select("*").order("created_at", { ascending: false }),
-    supabase.from("goals").select("*").order("deadline", { ascending: true }),
+    supabase
+      .from("carbon_entries")
+      .select(ENTRY_COLUMNS)
+      .order("entry_date", { ascending: false })
+      .limit(100),
+    supabase.from("eco_actions").select(ACTION_COLUMNS).order("created_at", { ascending: false }),
+    supabase.from("goals").select(GOAL_COLUMNS).order("deadline", { ascending: true }),
   ]);
 
   if (entriesResult.error || actionsResult.error || goalsResult.error) {

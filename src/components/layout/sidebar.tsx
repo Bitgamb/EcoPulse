@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@/hooks/use-user";
 import { useEcoData } from "@/components/dashboard/data-provider";
 import { calculateMonthlyTotal } from "@/lib/calculations";
-import { endLocalSession } from "@/lib/local-auth";
 const nav = [
   ["/dashboard", BarChart3, "Overview"],
   ["/dashboard/add-entry", PlusCircle, "Add entry"],
@@ -39,7 +38,6 @@ export function Sidebar() {
     monthly = calculateMonthlyTotal(entries);
   async function logout() {
     document.cookie = "ecopulse-demo=; path=/; max-age=0";
-    endLocalSession();
     await createClient()?.auth.signOut();
     router.push("/");
     router.refresh();
@@ -75,11 +73,11 @@ export function Sidebar() {
         <div className="mt-6 rounded-md bg-ink p-3.5 text-white lg:mt-9 lg:p-4">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-extrabold uppercase text-white/50">This month</p>
-            <span className="size-2 rounded-full bg-lime" />
+            <span className="size-2 rounded-full bg-lime" aria-hidden="true" />
           </div>
           <strong className="mt-1.5 block text-xl lg:mt-2 lg:text-2xl">{monthly.toFixed(1)} kg</strong>
           <p className="mt-1 text-[11px] text-white/50">
-            CO2‚e from {entries.length} {entries.length === 1 ? "activity" : "activities"}
+            CO2e from {entries.length} {entries.length === 1 ? "activity" : "activities"}
           </p>
         </div>
         <nav className="mt-4 flex-1 space-y-0.5 lg:mt-7 lg:space-y-1" aria-label="Dashboard navigation">
@@ -90,12 +88,13 @@ export function Sidebar() {
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold text-ink/60 hover:bg-paper hover:text-ink lg:py-2.5",
                   active && "bg-lime text-ink hover:bg-lime hover:text-ink",
                 )}
               >
-                <Icon size={18} />
+                <Icon size={18} aria-hidden="true" />
                 {label}
               </Link>
             );
@@ -117,7 +116,7 @@ export function Sidebar() {
             onClick={logout}
             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-bold text-ink/60 hover:bg-paper"
           >
-            <LogOut size={17} />
+            <LogOut size={17} aria-hidden="true" />
             Log out
           </button>
         </div>

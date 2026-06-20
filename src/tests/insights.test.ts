@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import { generateInsights } from "@/lib/insights";
 import type { CarbonEntry } from "@/types/carbon";
 it("prioritizes the largest category", () => {
