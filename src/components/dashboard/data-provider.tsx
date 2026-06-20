@@ -1,99 +1,182 @@
-"use client";
+﻿"use client";
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { demoActions,demoEntries,demoGoals } from "@/lib/demo-data";
-import type { CarbonEntry,EcoAction,Goal } from "@/types/carbon";
-import { isLocalAuthAllowed } from "@/lib/local-auth";
-type State={entries:CarbonEntry[];actions:EcoAction[];goals:Goal[];streak:number;addEntry:(e:CarbonEntry)=>void;completeAction:(id:string)=>void;addGoal:(g:Goal)=>void;deleteGoal:(id:string)=>void;reset:()=>void};
-const C = createContext<State | null>(null);
+import { jsonRequest, requestJson } from "@/lib/api-client";
+import { demoActions, demoEntries, demoGoals } from "@/lib/demo-data";
+import { advanceGoals } from "@/lib/goals";
+import type { CarbonEntry, DashboardData, EcoAction, Goal } from "@/types/carbon";
+
+type EcoDataState = {
+  entries: CarbonEntry[];
+  actions: EcoAction[];
+  goals: Goal[];
+  streak: number;
+  isLoading: boolean;
+  error: string | null;
+  clearError: () => void;
+  addEntry: (entry: CarbonEntry) => Promise<boolean>;
+  completeAction: (id: string) => Promise<boolean>;
+  addGoal: (goal: Goal) => Promise<boolean>;
+  deleteGoal: (id: string) => Promise<boolean>;
+  reset: () => void;
+};
+
+const EcoDataContext = createContext<EcoDataState | null>(null);
 const DEMO_KEY = "ecopulse-data";
 const USER_KEY = "ecopulse-user-data";
 
-export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [entries, setEntries] = useState<CarbonEntry[]>([]);
-  const [actions, setActions] = useState<EcoAction[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [mode, setMode] = useState<"loading" | "demo" | "local" | "supabase">("loading");
+const starterActions = () => demoActions.map((action) => ({ ...action, completed: false }));
 
-  useEffect(() => {
-    const demo = document.cookie.includes("ecopulse-demo=true");
-    const local = isLocalAuthAllowed() && document.cookie.includes("ecopulse-local=true");
-    if (demo || local) {
-      const storageKey = demo ? DEMO_KEY : USER_KEY;
-      const defaults = demo
-        ? { entries: demoEntries, actions: demoActions, goals: demoGoals }
-        : { entries: [], actions: demoActions.map((action) => ({ ...action, completed: false })), goals: [] };
-      try {
-        const stored = localStorage.getItem(storageKey);
-        const data = stored ? JSON.parse(stored) : defaults;
-        setEntries(data.entries || []);
-        setActions(data.actions?.length ? data.actions : defaults.actions);
-        setGoals(data.goals || []);
-      } catch {
-        setEntries(defaults.entries);
-        setActions(defaults.actions);
-        setGoals(defaults.goals);
-      }
-      setMode(demo ? "demo" : "local");
-      return;
-    }
-
-    setMode("supabase");
-    Promise.all([fetch("/api/entries"), fetch("/api/actions"), fetch("/api/goals")]).then(async (responses) => {
-      const values = await Promise.all(responses.map((response) => response.json()));
-      if (values[0].data) setEntries(values[0].data);
-      if (values[1].data) setActions(values[1].data);
-      if (values[2].data) setGoals(values[2].data);
-    }).catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    if (mode !== "demo" && mode !== "local") return;
-    localStorage.setItem(mode === "demo" ? DEMO_KEY : USER_KEY, JSON.stringify({ entries, actions, goals }));
-  }, [entries, actions, goals, mode]);
-
-  const value = useMemo(() => ({
-    entries,
-    actions,
-    goals,
-    streak: mode === "demo" ? 8 : entries.length ? 1 : 0,
-    addEntry: (entry: CarbonEntry) => {
-      setEntries((current) => [entry, ...current]);
-      if (mode === "supabase") fetch("/api/entries", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(entry) });
-    },
-    completeAction: (id: string) => {
-      const completedAction = actions.find((action) => action.id === id && !action.completed);
-      setActions((current) => current.map((action) => action.id === id ? { ...action, completed: true } : action));
-      if (completedAction) {
-        setGoals((current) => current.map((goal) => {
-          if (goal.status !== "active" || (goal.category && goal.category !== completedAction.category)) return goal;
-          const current_progress = Math.min(goal.target_reduction, goal.current_progress + completedAction.estimated_saving);
-          return { ...goal, current_progress, status: current_progress >= goal.target_reduction ? "completed" as const : goal.status };
-        }));
-      }
-      if (mode === "supabase") fetch("/api/actions", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
-    },
-    addGoal: (goal: Goal) => {
-      setGoals((current) => [goal, ...current]);
-      if (mode === "supabase") fetch("/api/goals", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(goal) });
-    },
-    deleteGoal: (id: string) => {
-      setGoals((current) => current.filter((goal) => goal.id !== id));
-      if (mode === "supabase") fetch(`/api/goals?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-    },
-    reset: () => {
-      if (mode === "demo") {
-        setEntries(demoEntries); setActions(demoActions); setGoals(demoGoals);
-      } else {
-        setEntries([]); setActions(demoActions.map((action) => ({ ...action, completed: false }))); setGoals([]);
-      }
-    },
-  }), [entries, actions, goals, mode]);
-
-  return <C.Provider value={value}>{children}</C.Provider>;
+function readLocalData(key: string, fallback: Pick<DashboardData, "entries" | "actions" | "goals">) {
+  try {
+    const stored = localStorage.getItem(key);
+    if (!stored) return fallback;
+    const parsed = JSON.parse(stored) as Partial<DashboardData>;
+    return {
+      entries: parsed.entries ?? fallback.entries,
+      actions: parsed.actions?.length ? parsed.actions : fallback.actions,
+      goals: parsed.goals ?? fallback.goals,
+    };
+  } catch {
+    return fallback;
+  }
 }
 
-export const useEcoData = () => {
-  const context = useContext(C);
-  if (!context) throw new Error("DataProvider missing");
+export function DataProvider({
+  children,
+  initialData,
+}: {
+  children: React.ReactNode;
+  initialData: DashboardData;
+}) {
+  const [entries, setEntries] = useState(initialData.entries);
+  const [actions, setActions] = useState(initialData.actions);
+  const [goals, setGoals] = useState(initialData.goals);
+  const [error, setError] = useState<string | null>(initialData.error ?? null);
+  const [hydrated, setHydrated] = useState(initialData.mode === "supabase");
+  const mode = initialData.mode;
+
+  useEffect(() => {
+    if (mode === "supabase") return;
+    const fallback =
+      mode === "demo"
+        ? { entries: demoEntries, actions: demoActions, goals: demoGoals }
+        : { entries: [], actions: starterActions(), goals: [] };
+    const data = readLocalData(mode === "demo" ? DEMO_KEY : USER_KEY, fallback);
+    setEntries(data.entries);
+    setActions(data.actions);
+    setGoals(data.goals);
+    setHydrated(true);
+  }, [mode]);
+
+  useEffect(() => {
+    if (!hydrated || mode === "supabase") return;
+    localStorage.setItem(mode === "demo" ? DEMO_KEY : USER_KEY, JSON.stringify({ entries, actions, goals }));
+  }, [entries, actions, goals, hydrated, mode]);
+
+  const value = useMemo<EcoDataState>(
+    () => ({
+      entries,
+      actions,
+      goals,
+      streak: mode === "demo" ? 8 : entries.length ? 1 : 0,
+      isLoading: !hydrated,
+      error,
+      clearError: () => setError(null),
+      addEntry: async (entry) => {
+        setError(null);
+        setEntries((current) => [entry, ...current]);
+        if (mode !== "supabase") return true;
+
+        try {
+          const saved = await requestJson<CarbonEntry>("/api/entries", jsonRequest("POST", entry));
+          setEntries((current) => current.map((item) => (item.id === entry.id ? saved : item)));
+          return true;
+        } catch (cause) {
+          setEntries((current) => current.filter((item) => item.id !== entry.id));
+          setError(cause instanceof Error ? cause.message : "The activity could not be saved.");
+          return false;
+        }
+      },
+      completeAction: async (id) => {
+        const action = actions.find((item) => item.id === id && !item.completed);
+        if (!action) return true;
+        const previousGoals = goals;
+        setError(null);
+        setActions((current) =>
+          current.map((item) => (item.id === id ? { ...item, completed: true } : item)),
+        );
+        setGoals((current) => advanceGoals(current, action));
+        if (mode !== "supabase") return true;
+
+        try {
+          await requestJson<EcoAction>("/api/actions", jsonRequest("PATCH", { id }));
+          return true;
+        } catch (cause) {
+          setActions((current) =>
+            current.map((item) => (item.id === id ? { ...item, completed: false } : item)),
+          );
+          setGoals(previousGoals);
+          setError(cause instanceof Error ? cause.message : "The action could not be completed.");
+          return false;
+        }
+      },
+      addGoal: async (goal) => {
+        setError(null);
+        setGoals((current) => [goal, ...current]);
+        if (mode !== "supabase") return true;
+
+        try {
+          const saved = await requestJson<Goal>("/api/goals", jsonRequest("POST", goal));
+          setGoals((current) => current.map((item) => (item.id === goal.id ? saved : item)));
+          return true;
+        } catch (cause) {
+          setGoals((current) => current.filter((item) => item.id !== goal.id));
+          setError(cause instanceof Error ? cause.message : "The goal could not be created.");
+          return false;
+        }
+      },
+      deleteGoal: async (id) => {
+        const deleted = goals.find((goal) => goal.id === id);
+        if (!deleted) return true;
+        setError(null);
+        setGoals((current) => current.filter((goal) => goal.id !== id));
+        if (mode !== "supabase") return true;
+
+        try {
+          await requestJson<boolean>(`/api/goals?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+          return true;
+        } catch (cause) {
+          setGoals((current) => [deleted, ...current]);
+          setError(cause instanceof Error ? cause.message : "The goal could not be deleted.");
+          return false;
+        }
+      },
+      reset: () => {
+        setError(null);
+        if (mode === "supabase") {
+          setError("Account data cannot be reset from this screen yet.");
+          return;
+        }
+        if (mode === "demo") {
+          setEntries(demoEntries);
+          setActions(demoActions);
+          setGoals(demoGoals);
+        } else {
+          setEntries([]);
+          setActions(starterActions());
+          setGoals([]);
+        }
+      },
+    }),
+    [entries, actions, goals, hydrated, error, mode],
+  );
+
+  return <EcoDataContext.Provider value={value}>{children}</EcoDataContext.Provider>;
+}
+
+export function useEcoData() {
+  const context = useContext(EcoDataContext);
+  if (!context) throw new Error("useEcoData must be used within DataProvider");
   return context;
-};
+}

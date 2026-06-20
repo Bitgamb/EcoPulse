@@ -1,3 +1,37 @@
-import { NextResponse } from "next/server";import { createClient } from "@/lib/supabase/server";import { entrySchema } from "@/lib/validations";import { calculateCO2 } from "@/lib/emission-factors";
-export async function GET(){const db=await createClient();if(!db)return NextResponse.json({error:"Database not configured"},{status:503});const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});const {data,error}=await db.from("carbon_entries").select("*").order("entry_date",{ascending:false}).limit(100);return NextResponse.json(error?{error:"Unable to load entries"}:{data},{status:error?500:200})}
-export async function POST(request:Request){const db=await createClient();if(!db)return NextResponse.json({error:"Database not configured"},{status:503});const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});const parsed=entrySchema.safeParse(await request.json());if(!parsed.success)return NextResponse.json({error:parsed.error.issues[0].message},{status:400});const row={...parsed.data,user_id:user.id,co2_amount:calculateCO2(parsed.data.activity_type,parsed.data.value)};const {data,error}=await db.from("carbon_entries").insert(row).select().single();return NextResponse.json(error?{error:"Unable to save entry"}:{data},{status:error?500:201})}
+﻿import { NextResponse } from "next/server";
+import { requireApiUser, apiError, parseJson } from "@/lib/api/helpers";
+import { calculateCO2 } from "@/lib/emission-factors";
+import { entrySchema } from "@/lib/validations";
+
+const ENTRY_COLUMNS = "id,category,activity_type,value,unit,co2_amount,entry_date,note";
+
+export async function GET() {
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+
+  const { data, error } = await auth.db
+    .from("carbon_entries")
+    .select(ENTRY_COLUMNS)
+    .order("entry_date", { ascending: false })
+    .limit(100);
+
+  if (error) return apiError("Unable to load entries", 500);
+  return NextResponse.json({ data });
+}
+
+export async function POST(request: Request) {
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const body = await parseJson(request, entrySchema);
+  if (!body.ok) return body.response;
+
+  const row = {
+    ...body.data,
+    user_id: auth.user.id,
+    co2_amount: calculateCO2(body.data.activity_type, body.data.value),
+  };
+  const { data, error } = await auth.db.from("carbon_entries").insert(row).select(ENTRY_COLUMNS).single();
+
+  if (error) return apiError("Unable to save entry", 500);
+  return NextResponse.json({ data }, { status: 201 });
+}

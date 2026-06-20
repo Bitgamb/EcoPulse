@@ -3,9 +3,11 @@ export type LocalAccount = { name: string; email: string; passwordHash: string }
 const ACCOUNT_KEY = "ecopulse-local-account";
 
 export function isLocalAuthAllowed() {
-  return process.env.NODE_ENV === "development" &&
+  return (
+    process.env.NODE_ENV === "development" &&
     typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  );
 }
 
 export async function hashPassword(password: string) {

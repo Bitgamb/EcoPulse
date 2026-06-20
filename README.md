@@ -18,7 +18,7 @@ Next.js 15 App Router, TypeScript, Tailwind CSS, Recharts, Lucide React, Supabas
 
 ## Architecture
 
-Server routes validate all writes and obtain the authenticated user from secure Supabase cookies. RLS provides a second authorization boundary in PostgreSQL. Shared pure functions drive both UI calculations and tests. Demo mode uses the same typed UI contracts and persists state in `localStorage`.
+The dashboard is server-prefetched and loads independent Supabase queries concurrently. Server routes validate all writes and obtain the authenticated user from secure Supabase cookies. RLS provides a second authorization boundary in PostgreSQL, while action completion and goal progress use one atomic database function. Chart code is loaded on demand to keep the initial dashboard bundle lean. Shared pure functions drive both UI calculations and tests. Demo mode uses the same typed UI contracts and persists state in `localStorage`.
 
 ## Local Setup
 
@@ -33,7 +33,7 @@ Open `http://localhost:3000`. Select **View demo** to explore without Supabase.
 ## Supabase Setup
 
 1. Create a Supabase project.
-2. Run `supabase/migrations/001_initial_schema.sql` in the SQL editor.
+2. Run the files in `supabase/migrations` in numeric order in the SQL editor.
 3. Add the project URL and anon key to `.env.local`.
 4. Add `http://localhost:3000/auth/callback` and the production equivalent to Auth redirect URLs.
 
@@ -60,10 +60,11 @@ Zod validates server input, protected middleware uses `auth.getUser()`, RLS enfo
 
 ```bash
 npm test
+npm run check
 npm run build
 ```
 
-Tests cover emission factors, negative recycling, eco-score bounds, largest-category selection, goal progress, insight priority, and badge unlocks.
+`npm run check` runs TypeScript, the test suite, and formatting validation. Tests cover emission factors, date boundaries, negative recycling, eco-score bounds, largest-category selection, goal progression, API error handling, insight priority, and badge unlocks.
 
 ## Screenshots
 

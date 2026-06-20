@@ -1,3 +1,33 @@
-import { NextResponse } from "next/server";import { createClient } from "@/lib/supabase/server";import { z } from "zod";
-export async function GET(){const db=await createClient();if(!db)return NextResponse.json({error:"Database not configured"},{status:503});const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});const {data,error}=await db.from("eco_actions").select("*").order("created_at",{ascending:false});return NextResponse.json(error?{error:"Unable to load actions"}:{data},{status:error?500:200})}
-export async function PATCH(request:Request){const db=await createClient();if(!db)return NextResponse.json({error:"Database not configured"},{status:503});const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});const parsed=z.object({id:z.string().uuid()}).safeParse(await request.json());if(!parsed.success)return NextResponse.json({error:"Invalid action"},{status:400});const {data,error}=await db.from("eco_actions").update({completed:true,completed_at:new Date().toISOString()}).eq("id",parsed.data.id).select().single();return NextResponse.json(error?{error:"Unable to update action"}:{data},{status:error?500:200})}
+﻿import { NextResponse } from "next/server";
+import { z } from "zod";
+import { apiError, parseJson, requireApiUser } from "@/lib/api/helpers";
+
+const actionIdSchema = z.object({ id: z.string().uuid("Invalid action") });
+const ACTION_COLUMNS = "id,title,description,category,estimated_saving,difficulty,completed";
+
+export async function GET() {
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+
+  const { data, error } = await auth.db
+    .from("eco_actions")
+    .select(ACTION_COLUMNS)
+    .order("created_at", { ascending: false });
+
+  if (error) return apiError("Unable to load actions", 500);
+  return NextResponse.json({ data });
+}
+
+export async function PATCH(request: Request) {
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const body = await parseJson(request, actionIdSchema);
+  if (!body.ok) return body.response;
+
+  const { data, error } = await auth.db.rpc("complete_eco_action", {
+    p_action_id: body.data.id,
+  });
+
+  if (error || !data) return apiError("Unable to complete action", 500);
+  return NextResponse.json({ data });
+}

@@ -1,1 +1,18 @@
-import Link from "next/link";import { ChevronLeft } from "lucide-react";import { CarbonEntryForm } from "@/components/forms/carbon-entry-form";export default function AddEntry(){return <><Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-bold text-ink/55"><ChevronLeft size={16}/>Dashboard</Link><h1 className="mt-5 font-display text-4xl">Log an activity</h1><p className="mb-7 mt-1 text-sm text-ink/55">A few details are all EcoPulse needs to estimate your impact.</p><CarbonEntryForm/></>}
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import { CarbonEntryForm } from "@/components/forms/carbon-entry-form";
+export default function AddEntry() {
+  return (
+    <>
+      <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-bold text-ink/55">
+        <ChevronLeft size={16} />
+        Dashboard
+      </Link>
+      <h1 className="mt-5 font-display text-4xl">Log an activity</h1>
+      <p className="mb-7 mt-1 text-sm text-ink/55">
+        A few details are all EcoPulse needs to estimate your impact.
+      </p>
+      <CarbonEntryForm />
+    </>
+  );
+}

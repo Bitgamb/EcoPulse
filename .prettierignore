@@ -1,0 +1,9 @@
+.next
+node_modules
+coverage
+public/*.png
+docs/screenshots
+PRD.txt
+supabase/**/*.sql
+.env*
+.gitignore
